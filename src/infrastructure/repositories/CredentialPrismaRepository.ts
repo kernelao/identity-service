@@ -1,8 +1,11 @@
+import { Injectable } from '@nestjs/common';
+
 import { PrismaService } from '@/infrastructure/db/PrismaService';
 import { CredentialRepositoryPort } from '@/application/user/ports/CredentialRepository.port';
 import { Credential } from '@/domain/credential/Credential';
 import { UserId } from '@/domain/user/UserId';
 
+@Injectable()
 export class CredentialPrismaRepository implements CredentialRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 

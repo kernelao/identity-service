@@ -1,3 +1,5 @@
+import { Injectable } from '@nestjs/common';
+
 import { PrismaService } from '@/infrastructure/db/PrismaService';
 import { RefreshSessionLookupPort } from '@/application/auth/ports/RefreshSessionLookup.port';
 import { RefreshSessionRotationPort } from '@/application/auth/ports/RefreshSessionRotation.port';
@@ -5,6 +7,7 @@ import { RefreshSession } from '@/domain/token/RefreshSession';
 import { RefreshTokenFamilyId } from '@/domain/token/RefreshTokenFamilyId';
 import { UserId } from '@/domain/user/UserId';
 
+@Injectable()
 export class RefreshSessionPrismaRepository
   implements RefreshSessionLookupPort, RefreshSessionRotationPort
 {
@@ -20,6 +23,19 @@ export class RefreshSessionPrismaRepository
       consumedAt: row.consumedAt ?? undefined,
       revokedAt: row.revokedAt ?? undefined,
     };
+  }
+
+  async create(params: { session: RefreshSession; tokenHash: string }): Promise<void> {
+    await this.prisma.refreshSession.create({
+      data: {
+        id: params.session.id.value,
+        userId: params.session.userId.value,
+        familyId: params.session.familyId.value,
+        tokenHash: params.tokenHash,
+        ipHash: params.session.ipHash,
+        userAgentHash: params.session.userAgentHash,
+      },
+    });
   }
 
   async rotate(params: {

@@ -1,7 +1,10 @@
+import { Injectable } from '@nestjs/common';
+
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/infrastructure/db/PrismaService';
 import { IdempotencyService } from '@/application/shared/Idempotency';
 
+@Injectable()
 export class PrismaIdempotencyService implements IdempotencyService {
   constructor(private readonly prisma: PrismaService) {}
 

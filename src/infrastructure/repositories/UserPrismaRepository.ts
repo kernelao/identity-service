@@ -1,9 +1,12 @@
+import { Injectable } from '@nestjs/common';
+
 import { PrismaService } from '@/infrastructure/db/PrismaService';
 import { UserRepositoryPort } from '@/application/user/ports/UserRepository.port';
 import { Email } from '@/domain/user/Email';
 import { User } from '@/domain/user/User';
 import { UserId } from '@/domain/user/UserId';
 
+@Injectable()
 export class UserPrismaRepository implements UserRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 

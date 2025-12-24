@@ -1,7 +1,10 @@
+import { Injectable } from '@nestjs/common';
+
 import { RateLimiterPort } from '@/application/shared/ports/RateLimiter.port';
 
 type Bucket = { count: number; resetAtMs: number };
 
+@Injectable()
 export class InMemoryRateLimiter implements RateLimiterPort {
   private readonly buckets = new Map<string, Bucket>();
 
