@@ -91,3 +91,12 @@ model AuditLog {
   @@index([correlationId])
   @@index([createdAt])
 }
+
+model IdempotencyKey {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  response  Json
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

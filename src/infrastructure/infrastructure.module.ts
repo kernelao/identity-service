@@ -1,3 +1,4 @@
+import { RateLimiterPort } from './../application/shared/ports/RateLimiter.port';
 import { Module } from '@nestjs/common';
 import { PrismaService } from '@/infrastructure/db/PrismaService';
 
@@ -12,6 +13,11 @@ import { RefreshTokenCrypto } from '@/infrastructure/crypto/RefreshTokenCrypto';
 import { UuidGenerator } from '@/infrastructure/ids/UuidGenerator';
 import { JoseTokenSigner } from '@/infrastructure/jwt/JoseTokenSigner';
 
+import { PrismaIdempotencyService } from '@/infrastructure/idempotency/PrismaIdempotencyService';
+
+import { RateLimitService } from '@/application/shared/RateLimit';
+import { InMemoryRateLimiter } from '@/infrastructure/ratelimit/InMemoryRateLimiter';
+
 @Module({
   providers: [
     PrismaService,
@@ -21,8 +27,12 @@ import { JoseTokenSigner } from '@/infrastructure/jwt/JoseTokenSigner';
     { provide: 'CredentialRepositoryPort', useClass: CredentialPrismaRepository },
     { provide: 'MembershipRepositoryPort', useClass: MembershipPrismaRepository },
     { provide: 'MembershipAdminRepositoryPort', useClass: MembershipPrismaRepository },
+
+    // Refresh sessions (lookup/rotation/repo complet)
     { provide: 'RefreshSessionLookupPort', useClass: RefreshSessionPrismaRepository },
     { provide: 'RefreshSessionRotationPort', useClass: RefreshSessionPrismaRepository },
+    { provide: 'RefreshSessionRepositoryPort', useClass: RefreshSessionPrismaRepository },
+
     { provide: 'AuditLogRepositoryPort', useClass: AuditLogPrismaRepository },
 
     // Crypto
@@ -42,7 +52,46 @@ import { JoseTokenSigner } from '@/infrastructure/jwt/JoseTokenSigner';
       provide: 'TokenSignerPort',
       useFactory: () => new JoseTokenSigner(process.env.JWT_ACCESS_SECRET ?? 'dev-secret'),
     },
+
+    // Idempotency
+    {
+      provide: 'IdempotencyService',
+      useFactory: (prisma: PrismaService) => new PrismaIdempotencyService(prisma),
+      inject: [PrismaService],
+    },
+
+    // Rate limit
+    { provide: 'RateLimiterPort', useClass: InMemoryRateLimiter },
+    {
+      provide: 'RateLimitService',
+      useFactory: (limiter: RateLimiterPort) => new RateLimitService(limiter),
+      inject: ['RateLimiterPort'],
+    },
   ],
-  exports: [],
+  exports: [
+    PrismaService,
+
+    'UserRepositoryPort',
+    'CredentialRepositoryPort',
+    'MembershipRepositoryPort',
+    'MembershipAdminRepositoryPort',
+
+    'RefreshSessionLookupPort',
+    'RefreshSessionRotationPort',
+    'RefreshSessionRepositoryPort',
+
+    'AuditLogRepositoryPort',
+
+    'PasswordHasherPort',
+    'PasswordVerifierPort',
+    'RefreshTokenGeneratorPort',
+    'RefreshTokenHasherPort',
+    'IdGeneratorPort',
+    'TokenSignerPort',
+
+    'IdempotencyService',
+
+    'RateLimitService',
+  ],
 })
 export class InfrastructureModule {}
