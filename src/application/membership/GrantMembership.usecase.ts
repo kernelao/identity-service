@@ -8,7 +8,6 @@ import { CorrelationId } from '@/domain/audit/CorrelationId';
 import { AccessPolicy } from '@/domain/membership/AccessPolicy';
 import { Membership } from '@/domain/membership/Membership';
 import { Role } from '@/domain/membership/Role';
-import { Scope } from '@/domain/membership/Scope';
 import { StoreId } from '@/domain/membership/StoreId';
 import { UserId } from '@/domain/user/UserId';
 
@@ -16,6 +15,8 @@ import { AuditLogRepositoryPort } from '@/application/user/ports/AuditLogReposit
 import { GrantMembershipCommand } from '@/application/membership/dtos/GrantMembershipCommand';
 import { GrantMembershipResult } from '@/application/membership/dtos/GrantMembershipResult';
 import { MembershipAdminRepositoryPort } from '@/application/membership/ports/MembershipAdminRepository.port';
+
+import { parseScopes } from '@/domain/membership/Scope';
 
 /**
  * GrantMembershipUseCase
@@ -72,7 +73,7 @@ export class GrantMembershipUseCase {
         const targetUserId = new UserId(cmd.userId);
 
         const roles = cmd.roles as Role[];
-        const scopes = cmd.scopes as Scope[];
+        const scopes = parseScopes(cmd.scopes);
 
         // Upsert
         const existing = await this.repo.findByUserAndStore({

@@ -129,4 +129,30 @@ export class Membership extends Entity<MembershipProps> {
       new MembershipGrantedEvent(this.userId, this.storeId, this.roles, this.scopes),
     );
   }
+
+  /*
+   * Rehydrate: reconstruction DB.
+   * IMPORTANT: ne push PAS d'events.
+   */
+  static rehydrate(params: {
+    id: string;
+    userId: string;
+    storeId: string;
+    roles: Role[];
+    scopes: Scope[];
+    createdAt: Date;
+    updatedAt: Date;
+  }): Membership {
+    return new Membership(
+      {
+        userId: new UserId(params.userId),
+        storeId: StoreId.create(params.storeId),
+        roles: [...params.roles],
+        scopes: [...params.scopes],
+        createdAt: params.createdAt,
+        updatedAt: params.updatedAt,
+      },
+      new UniqueEntityId(params.id),
+    );
+  }
 }

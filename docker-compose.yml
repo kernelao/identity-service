@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: identity-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: identity
+    ports:
+      - "5432:5432"
+    volumes:
+      - identity_pgdata:/var/lib/postgresql/data
+
+volumes:
+  identity_pgdata:

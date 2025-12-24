@@ -46,6 +46,14 @@ export class User extends AggregateRoot<UserProps> {
     return this.props.createdAt;
   }
 
+  /* ajout-
+   * Alias pratique pour infra/DTOs si tu veux mapper un "status".
+   * (Optionnel) — on peut aussi ne pas l'utiliser et stocker isActive en DB.
+   */
+  get status(): 'ACTIVE' | 'DISABLED' {
+    return this.props.isActive ? 'ACTIVE' : 'DISABLED';
+  }
+
   /**
    * Factory de création (register)
    * - émet l'event UserRegisteredEvent
@@ -82,5 +90,20 @@ export class User extends AggregateRoot<UserProps> {
 
     this.props.isActive = false;
     this.addDomainEvent(new UserDisabledEvent(this.userId));
+  }
+
+  /*
+   * Rehydrate: reconstruction depuis la DB.
+   * IMPORTANT: ne réémet AUCUN event.
+   */
+  static rehydrate(params: { id: string; email: string; status: string; createdAt: Date }): User {
+    return new User(
+      {
+        email: Email.create(params.email),
+        isActive: params.status === 'ACTIVE',
+        createdAt: params.createdAt,
+      },
+      new UniqueEntityId(params.id),
+    );
   }
 }

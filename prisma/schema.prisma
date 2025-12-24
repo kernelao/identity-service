@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id         String   @id @default(uuid())
+  email      String   @unique
+  status     String   @default("ACTIVE") // ACTIVE | DISABLED
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  credentials    Credential[]
+  memberships    Membership[]
+  refreshSessions RefreshSession[]
+  auditLogs      AuditLog[] @relation("AuditActor")
+
+  @@index([createdAt])
+}
+
+model Credential {
+  id           String   @id @default(uuid())
+  userId       String
+  provider     String   // 'password' (oauth futur)
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+  @@index([userId])
+}
+
+model Membership {
+  id        String   @id @default(uuid())
+  userId    String
+  storeId   String
+  roles     String[] // postgres text[]
+  scopes    String[] // postgres text[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Anti leak: un user ne peut avoir qu'un membership par store
+  @@unique([userId, storeId])
+  @@index([storeId])
+  @@index([userId])
+}
+
+model RefreshSession {
+  id            String   @id @default(uuid())
+  userId        String
+  familyId      String
+  tokenHash     String   @unique
+  consumedAt    DateTime?
+  revokedAt     DateTime?
+  createdAt     DateTime @default(now())
+
+  ipHash        String?
+  userAgentHash String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([familyId])
+  @@index([revokedAt])
+  @@index([consumedAt])
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  actorId       String
+  action        String
+  storeId       String?
+  targetType    String?
+  targetId      String?
+  correlationId String
+  createdAt     DateTime @default(now())
+  ipHash        String?
+  userAgentHash String?
+
+  actor User @relation("AuditActor", fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([actorId])
+  @@index([storeId])
+  @@index([correlationId])
+  @@index([createdAt])
+}

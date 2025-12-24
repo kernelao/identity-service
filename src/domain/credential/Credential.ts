@@ -72,4 +72,27 @@ export class Credential extends Entity<CredentialProps> {
     this.props.passwordHash = newHash;
     this.props.updatedAt = new Date();
   }
+
+  /*
+   * Rehydrate: reconstruction DB.
+   * IMPORTANT: pas d'events.
+   */
+  static rehydratePassword(params: {
+    id: string;
+    userId: string;
+    passwordHash: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }): Credential {
+    return new Credential(
+      {
+        userId: new UserId(params.userId),
+        provider: 'password',
+        passwordHash: PasswordHash.fromHash(params.passwordHash),
+        createdAt: params.createdAt,
+        updatedAt: params.updatedAt,
+      },
+      new UniqueEntityId(params.id),
+    );
+  }
 }

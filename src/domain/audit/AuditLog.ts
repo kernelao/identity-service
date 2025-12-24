@@ -70,6 +70,16 @@ export class AuditLog extends Entity<AuditLogProps> {
     return this.props.createdAt;
   }
 
+  /* ****** ajout */
+  get ipHash(): string | undefined {
+    return this.props.ipHash;
+  }
+
+  get userAgentHash(): string | undefined {
+    return this.props.userAgentHash;
+  }
+  /* FIN ajout ***** */
+
   static record(params: {
     actorId: UserId;
     action: AuditAction;

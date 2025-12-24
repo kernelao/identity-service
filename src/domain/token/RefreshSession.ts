@@ -58,6 +58,16 @@ export class RefreshSession extends AggregateRoot<RefreshSessionProps> {
     return this.props.createdAt;
   }
 
+  /* ajout */
+  get ipHash(): string | undefined {
+    return this.props.ipHash;
+  }
+
+  get userAgentHash(): string | undefined {
+    return this.props.userAgentHash;
+  }
+  /* */
+
   isRevoked(): boolean {
     return !!this.props.revokedAt;
   }
@@ -117,5 +127,31 @@ export class RefreshSession extends AggregateRoot<RefreshSessionProps> {
     this.addDomainEvent(new RefreshSessionRotatedEvent(this.userId, this.familyId, next.sessionId));
 
     return next;
+  }
+
+  /*
+   * Optionnel mais utile: reconstruction depuis DB.
+   * IMPORTANT: ne push pas d'events.
+   */
+  static rehydrate(params: {
+    id: string;
+    userId: string;
+    familyId: string;
+    createdAt: Date;
+    revokedAt?: Date | null;
+    ipHash?: string | null;
+    userAgentHash?: string | null;
+  }): RefreshSession {
+    return new RefreshSession(
+      {
+        userId: new UserId(params.userId),
+        familyId: RefreshTokenFamilyId.create(params.familyId),
+        createdAt: params.createdAt,
+        revokedAt: params.revokedAt ?? undefined,
+        ipHash: params.ipHash ?? undefined,
+        userAgentHash: params.userAgentHash ?? undefined,
+      },
+      new UniqueEntityId(params.id),
+    );
   }
 }
