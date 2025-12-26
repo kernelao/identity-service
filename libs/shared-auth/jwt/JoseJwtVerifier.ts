@@ -1,11 +1,14 @@
 import { importSPKI, jwtVerify } from 'jose';
 import type { JwtAccessClaims, JwtVerifierPort } from './JwtVerifier.port';
+import { AuthError } from './AuthError';
 
-/**
- * JoseJwtVerifier (RS256)
- * ----------------------
- * Vérifie signature/exp via PUBLIC KEY (SPKI PEM).
- */
+function getJoseCode(e: unknown): string | null {
+  if (typeof e !== 'object' || e === null) return null;
+  if (!('code' in e)) return null;
+  const code = (e as { code?: unknown }).code;
+  return typeof code === 'string' ? code : null;
+}
+
 export class JoseJwtVerifier implements JwtVerifierPort {
   private publicKey?: CryptoKey;
 
@@ -19,13 +22,34 @@ export class JoseJwtVerifier implements JwtVerifierPort {
   }
 
   async verifyAccessToken(params: { token: string }): Promise<JwtAccessClaims> {
-    const key = await this.getKey();
+    try {
+      const key = await this.getKey();
 
-    const { payload } = await jwtVerify(params.token, key, {
-      algorithms: ['RS256'],
-    });
+      const { payload } = await jwtVerify(params.token, key, {
+        algorithms: ['RS256'],
+      });
 
-    // payload est typé "JWTPayload" => on cast vers notre shape contrôlée
-    return payload as unknown as JwtAccessClaims;
+      return payload as unknown as JwtAccessClaims;
+    } catch (e: unknown) {
+      const code = getJoseCode(e);
+
+      // jose expired
+      if (code === 'ERR_JWT_EXPIRED') {
+        throw new AuthError('TOKEN_EXPIRED', 'Invalid or expired token', e);
+      }
+
+      // jose invalid signature / malformed token / etc.
+      if (
+        code === 'ERR_JWT_INVALID' ||
+        code === 'ERR_JWS_INVALID' ||
+        code === 'ERR_JWS_SIGNATURE_VERIFICATION_FAILED' ||
+        code === 'ERR_JWK_INVALID'
+      ) {
+        throw new AuthError('TOKEN_INVALID', 'Invalid or expired token', e);
+      }
+
+      // fallback: problème interne (clé, algo, etc.)
+      throw e;
+    }
   }
 }
