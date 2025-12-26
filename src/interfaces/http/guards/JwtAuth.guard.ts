@@ -1,7 +1,13 @@
-import { CanActivate, ExecutionContext, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import type { AppRequest } from '@/interfaces/http/context/AppRequest';
 import type { RequestContext } from '@/application/shared/RequestContext';
-import type { JwtVerifierPort, JwtAccessClaims } from '../jwt/JwtVerifier.port';
+import type { JwtVerifierPort, JwtAccessClaims } from '@/../libs/shared-auth';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {

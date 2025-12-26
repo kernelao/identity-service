@@ -20,8 +20,7 @@ import { ListMembershipsUseCase } from '@/application/membership/ListMembership.
 import { GrantMembershipRequest } from '@/interfaces/http/memberships/dto/GrantMembership.request';
 import { ListMembershipsQueryDto } from '@/interfaces/http/memberships/dto/ListMemberships.query';
 
-//import { JwtAuthGuard } from '@/interfaces/http/guards/JwtAuth.guard';
-import { JwtAuthGuard } from '@/../libs/shared-auth';
+import { JwtAuthGuard } from '@/interfaces/http/guards/JwtAuth.guard';
 
 @Controller('/v1/stores/:storeId/memberships')
 @UseGuards(JwtAuthGuard)
