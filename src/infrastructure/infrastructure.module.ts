@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { readFileSync } from 'node:fs';
 
 import { PrismaService } from '@/infrastructure/db/PrismaService';
 
@@ -19,15 +18,11 @@ import { RateLimitService } from '@/application/shared/RateLimit';
 import { InMemoryRateLimiter } from '@/infrastructure/ratelimit/InMemoryRateLimiter';
 import { RateLimiterPort } from '@/application/shared/ports/RateLimiter.port';
 
-import { JoseJwtVerifier } from '@/infrastructure/jwt/JoseJwtVerifier';
 import { JoseTokenSigner } from '@/infrastructure/jwt/JoseTokenSigner';
 
-function readPemFromEnvOrFile(envPathKey: string, envPemKey: string): string {
-  const path = (process.env[envPathKey] ?? '').trim();
-  if (path) return readFileSync(path, 'utf8');
-  const pem = (process.env[envPemKey] ?? '').trim();
-  return pem;
-}
+//import { JoseJwtVerifier } from '@/infrastructure/jwt/JoseJwtVerifier';
+import { readPemFromEnvOrFile } from 'libs/shared-auth';
+import { createJwtVerifierProvider } from 'libs/shared-auth';
 
 @Module({
   providers: [
@@ -72,21 +67,9 @@ function readPemFromEnvOrFile(envPathKey: string, envPemKey: string): string {
         return new JoseTokenSigner(privatePem);
       },
     },
-    {
-      provide: 'JwtVerifierPort',
-      useFactory: () => {
-        const publicPem = readPemFromEnvOrFile(
-          'JWT_ACCESS_PUBLIC_KEY_PATH',
-          'JWT_ACCESS_PUBLIC_KEY_PEM',
-        );
-        if (!publicPem) {
-          throw new Error(
-            'Missing JWT public key. Provide JWT_ACCESS_PUBLIC_KEY_PATH or JWT_ACCESS_PUBLIC_KEY_PEM',
-          );
-        }
-        return new JoseJwtVerifier(publicPem);
-      },
-    },
+
+    // Tous les services (y compris Identity) vérifients avec PUBLIC KEY
+    createJwtVerifierProvider(),
 
     {
       provide: 'IdempotencyService',

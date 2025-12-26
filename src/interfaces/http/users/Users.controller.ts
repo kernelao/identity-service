@@ -17,7 +17,8 @@ import { GetMeUseCase } from '@/application/user/GetMe.usecase';
 
 import { RegisterUserRequest } from '@/interfaces/http/users/dto/RegisterUser.request';
 
-import { JwtAuthGuard } from '@/interfaces/http/guards/JwtAuth.guard';
+//import { JwtAuthGuard } from '@/interfaces/http/guards/JwtAuth.guard';
+import { JwtAuthGuard } from '@/../libs/shared-auth';
 
 @Controller('/v1')
 @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))

@@ -10,7 +10,8 @@ import { UsersController } from '@/interfaces/http/users/Users.controller';
 import { MembershipsController } from '@/interfaces/http/memberships/Memberships.controller';
 import { HealthController } from '@/interfaces/http/health/Health.controller';
 
-import { JwtAuthGuard } from '@/interfaces/http/guards/JwtAuth.guard';
+//import { JwtAuthGuard } from '@/interfaces/http/guards/JwtAuth.guard';
+import { JwtAuthGuard } from '@/../libs/shared-auth';
 
 @Module({
   // HttpModule est la “composition root” de la couche HTTP :
