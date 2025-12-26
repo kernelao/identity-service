@@ -23,14 +23,11 @@ export class RequestContextMiddleware implements NestMiddleware {
     ).trim();
     const storeId = (req.header('x-store-id') ?? '').trim();
 
-    const authHeader = (req.header('authorization') ?? '').trim();
-    const isGuest = authHeader.length === 0;
-
     const ctx: RequestContext = {
       requestId: requestId || 'missing',
       correlationId: correlationId || 'missing',
       storeId: storeId || undefined,
-      isGuest,
+      isGuest: true, // par défaut Guest, tant que AuthGuard na pas validé un JWT
       ipHash: (req.header('x-ip-hash') ?? '').trim() || undefined,
       userAgentHash: (req.header('x-ua-hash') ?? '').trim() || undefined,
     };

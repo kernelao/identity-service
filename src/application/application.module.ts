@@ -13,7 +13,7 @@ import { GetMeUseCase } from '@/application/user/GetMe.usecase';
 import { ListMembershipsUseCase } from '@/application/membership/ListMembership.usecase';
 
 /* =========================
- * PORTS – AUTH / USER
+ * PORTS
  * ========================= */
 import { UserRepositoryPort } from '@/application/user/ports/UserRepository.port';
 import { CredentialRepositoryPort } from '@/application/user/ports/CredentialRepository.port';
@@ -42,9 +42,6 @@ import { IdempotencyService } from '@/application/shared/Idempotency';
   imports: [InfrastructureModule],
 
   providers: [
-    /*
-     * LOGIN
-     *  */
     {
       provide: LoginUseCase,
       useFactory: (
@@ -88,9 +85,6 @@ import { IdempotencyService } from '@/application/shared/Idempotency';
       ],
     },
 
-    /*
-     * REFRESH TOKEN
-     *  */
     {
       provide: RefreshTokenUseCase,
       useFactory: (
@@ -125,9 +119,6 @@ import { IdempotencyService } from '@/application/shared/Idempotency';
       ],
     },
 
-    /*
-     * LOGOUT
-     *  */
     {
       provide: LogoutUseCase,
       useFactory: (
@@ -144,9 +135,6 @@ import { IdempotencyService } from '@/application/shared/Idempotency';
       ],
     },
 
-    /*
-     * GRANT MEMBERSHIP
-     *  */
     {
       provide: GrantMembershipUseCase,
       useFactory: (
@@ -157,9 +145,6 @@ import { IdempotencyService } from '@/application/shared/Idempotency';
       inject: ['MembershipAdminRepositoryPort', 'AuditLogRepositoryPort', 'IdempotencyService'],
     },
 
-    /*
-     * REGISTER USER
-     *  */
     {
       provide: RegisterUserUseCase,
       useFactory: (
@@ -178,9 +163,6 @@ import { IdempotencyService } from '@/application/shared/Idempotency';
       ],
     },
 
-    /*
-     * GET ME
-     *  */
     {
       provide: GetMeUseCase,
       useFactory: (users: UserRepositoryPort, memberships: MembershipRepositoryPort) =>
@@ -188,9 +170,6 @@ import { IdempotencyService } from '@/application/shared/Idempotency';
       inject: ['UserRepositoryPort', 'MembershipRepositoryPort'],
     },
 
-    /*
-     * LIST MEMBERSHIPS
-     *  */
     {
       provide: ListMembershipsUseCase,
       useFactory: (repo: MembershipAdminRepositoryPort, audit: AuditLogRepositoryPort) =>

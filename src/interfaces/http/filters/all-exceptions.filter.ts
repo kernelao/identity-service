@@ -7,6 +7,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
+    console.error('[AllExceptionsFilter]', exception);
+
     // HttpException NestJS
     if (exception instanceof HttpException) {
       const status = exception.getStatus();
