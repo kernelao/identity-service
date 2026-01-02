@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 
 import { PrismaService } from '@/infrastructure/db/PrismaService';
-import { MembershipRepositoryPort } from '@/application/auth/ports/MembershipRepository.port';
-import { MembershipAdminRepositoryPort } from '@/application/membership/ports/MembershipAdminRepository.port';
-import { Membership } from '@/domain/membership/Membership';
-import { StoreId } from '@/domain/membership/StoreId';
-import { UserId } from '@/domain/user/UserId';
+import { MembershipRepositoryPort } from '@/application/authn/ports/repositories/MembershipRepository.port';
+import { MembershipAdminRepositoryPort } from '@/application/authz/ports/MembershipAdminRepository.port';
+import { Membership } from '@/domain/authz/memberships/aggregates/Membership';
+import { StoreId } from '@/domain/authz/memberships/value-objects/StoreId';
+import { UserId } from '@/domain/authn/account/value-objects/UserId';
 
-import { parseRoles } from '@/domain/membership/Role';
-import { parseScopes } from '@/domain/membership/Scope';
+import { parseRoles } from '@/domain/authz/memberships/value-objects/Role';
+import { parseScopes } from '@/domain/authz/memberships/value-objects/Scope';
 
 @Injectable()
 export class MembershipPrismaRepository

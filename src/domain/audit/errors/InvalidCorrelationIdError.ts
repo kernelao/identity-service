@@ -1,4 +1,4 @@
-import { DomainError } from '@/domain/shared/DomainError';
+import { DomainError } from '@/domain/shared/base/DomainError';
 
 /**
  * InvalidCorrelationIdError

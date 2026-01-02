@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 
 import { PrismaService } from '@/infrastructure/db/PrismaService';
-import { RefreshSessionLookupPort } from '@/application/auth/ports/RefreshSessionLookup.port';
-import { RefreshSessionRotationPort } from '@/application/auth/ports/RefreshSessionRotation.port';
-import { RefreshSession } from '@/domain/token/RefreshSession';
-import { RefreshTokenFamilyId } from '@/domain/token/RefreshTokenFamilyId';
-import { UserId } from '@/domain/user/UserId';
+import { RefreshSessionLookupPort } from '@/application/authn/ports/RefreshSessionLookup.port';
+import { RefreshSessionRotationPort } from '@/application/authn/ports/RefreshSessionRotation.port';
+import { RefreshSession } from '@/domain/authn/sessions/aggregates/RefreshSession';
+import { RefreshTokenFamilyId } from '@/domain/authn/sessions/value-objects/RefreshTokenFamilyId';
+import { UserId } from '@/domain/authn/account/value-objects/UserId';
 
 @Injectable()
 export class RefreshSessionPrismaRepository

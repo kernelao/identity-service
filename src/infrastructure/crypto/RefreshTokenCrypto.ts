@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { RefreshTokenGeneratorPort } from '@/application/auth/ports/RefreshTokenGenerator.port';
-import { RefreshTokenHasherPort } from '@/application/auth/ports/RefreshTokenHasher.port';
+import { RefreshTokenGeneratorPort } from '@/application/authn/ports/crypto/RefreshTokenGenerator.port';
+import { RefreshTokenHasherPort } from '@/application/authn/ports/crypto/RefreshTokenHasher.port';
 
 export class RefreshTokenCrypto implements RefreshTokenGeneratorPort, RefreshTokenHasherPort {
   constructor(private readonly pepper: string) {}

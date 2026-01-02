@@ -10,42 +10,32 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const res = ctx.getResponse<Response>();
 
+    // LOG (simple)
     console.error('[AllExceptionsFilter]', exception);
 
-    // 1) shared-auth (JWT) => 401
+    // 1) shared-auth AuthError => 401
     if (exception instanceof AuthError) {
       res.status(HttpStatus.UNAUTHORIZED).json({
         statusCode: HttpStatus.UNAUTHORIZED,
         code: exception.code, // TOKEN_EXPIRED / TOKEN_INVALID
-        message: exception.message, // "Invalid or expired token"
-      });
-      return;
-    }
-
-    // 2) Erreurs métier (ton AppError) => status mapping
-    if (exception instanceof AppError) {
-      const code = exception.code ?? 'INTERNAL';
-
-      const status =
-        code === 'UNAUTHORIZED'
-          ? 401
-          : code === 'FORBIDDEN'
-            ? 403
-            : code === 'CONFLICT'
-              ? 409
-              : code === 'TOO_MANY_REQUESTS'
-                ? 429
-                : 400;
-
-      res.status(status).json({
-        statusCode: status,
-        code,
         message: exception.message,
       });
       return;
     }
 
-    // 3) HttpException Nest => status + payload Nest
+    // 2) AppError => statusCode porté par l’erreur (source de vérité)
+    if (exception instanceof AppError) {
+      const status = exception.statusCode ?? HttpStatus.BAD_REQUEST;
+
+      res.status(status).json({
+        statusCode: status,
+        code: exception.code ?? 'INTERNAL',
+        message: exception.message,
+      });
+      return;
+    }
+
+    // 3) HttpException Nest => status + payload
     if (exception instanceof HttpException) {
       const status = exception.getStatus();
       const payload = exception.getResponse();
@@ -55,7 +45,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       return;
     }
 
-    // 4) Fallback sécurité
+    // 4) fallback
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       message: 'Internal server error',

@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 
 import { PrismaService } from '@/infrastructure/db/PrismaService';
-import { UserRepositoryPort } from '@/application/user/ports/UserRepository.port';
-import { Email } from '@/domain/user/Email';
-import { User } from '@/domain/user/User';
-import { UserId } from '@/domain/user/UserId';
+import { UserRepositoryPort } from '@/application/authn/ports/repositories/UserRepository.port';
+import { Email } from '@/domain/authn/account/value-objects/Email';
+import { User } from '@/domain/authn/account/aggregates/User';
+import { UserId } from '@/domain/authn/account/value-objects/UserId';
 
 @Injectable()
 export class UserPrismaRepository implements UserRepositoryPort {

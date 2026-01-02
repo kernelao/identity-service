@@ -4,44 +4,63 @@ import { InfrastructureModule } from '@/infrastructure/infrastructure.module';
 /* =========================
  * USE CASES
  * ========================= */
-import { LoginUseCase } from '@/application/auth/Login.usecase';
-import { RefreshTokenUseCase } from '@/application/auth/RefreshToken.usecase';
-import { LogoutUseCase } from '@/application/auth/Logout.usecase';
-import { GrantMembershipUseCase } from '@/application/membership/GrantMembership.usecase';
-import { RegisterUserUseCase } from '@/application/user/RegisterUser.usecase';
-import { GetMeUseCase } from '@/application/user/GetMe.usecase';
-import { ListMembershipsUseCase } from '@/application/membership/ListMembership.usecase';
+import { LoginUseCase } from '@/application/authn/usecases/Login.usecase';
+import { RefreshTokenUseCase } from '@/application/authn/usecases/RefreshToken.usecase';
+import { LogoutUseCase } from '@/application/authn/usecases/Logout.usecase';
+import { GrantMembershipUseCase } from '@/application/authz/usecases/GrantMembership.usecase';
+import { RegisterUserUseCase } from '@/application/authn/usecases/RegisterUser.usecase';
+import { GetMeUseCase } from '@/application/authn/usecases/GetMe.usecase';
+import { ListMembershipsUseCase } from '@/application/authz/usecases/ListMembership.usecase';
 
 /* =========================
- * PORTS
+ * PORTS (types only)
  * ========================= */
-import { UserRepositoryPort } from '@/application/user/ports/UserRepository.port';
-import { CredentialRepositoryPort } from '@/application/user/ports/CredentialRepository.port';
-import { PasswordVerifierPort } from '@/application/auth/ports/PasswordVerifier.port';
-import { PasswordHasherPort } from '@/application/user/ports/PasswordHasher.port';
-import { AuditLogRepositoryPort } from '@/application/user/ports/AuditLogRepository.port';
+import { UserRepositoryPort } from '@/application/authn/ports/repositories/UserRepository.port';
+import { CredentialRepositoryPort } from '@/application/authn/ports/repositories/CredentialRepository.port';
+import { MembershipRepositoryPort } from '@/application/authn/ports/repositories/MembershipRepository.port';
+import { RefreshSessionRepositoryPort } from '@/application/authn/ports/repositories/RefreshSessionRepository.port';
 
-import { MembershipRepositoryPort } from '@/application/auth/ports/MembershipRepository.port';
-import { RefreshSessionRepositoryPort } from '@/application/auth/ports/RefreshSessionRepository.port';
-import { RefreshSessionLookupPort } from '@/application/auth/ports/RefreshSessionLookup.port';
-import { RefreshSessionRotationPort } from '@/application/auth/ports/RefreshSessionRotation.port';
-import { RefreshTokenGeneratorPort } from '@/application/auth/ports/RefreshTokenGenerator.port';
-import { RefreshTokenHasherPort } from '@/application/auth/ports/RefreshTokenHasher.port';
-import { TokenSignerPort } from '@/application/auth/ports/TokenSigner.port';
+import { PasswordVerifierPort } from '@/application/authn/ports/crypto/PasswordVerifier.port';
+import { PasswordHasherPort } from '@/application/authn/ports/crypto/PasswordHasher.port';
+import { RefreshTokenGeneratorPort } from '@/application/authn/ports/crypto/RefreshTokenGenerator.port';
+import { RefreshTokenHasherPort } from '@/application/authn/ports/crypto/RefreshTokenHasher.port';
 
-import { MembershipAdminRepositoryPort } from '@/application/membership/ports/MembershipAdminRepository.port';
+import { TokenSignerPort } from '@/application/authn/ports/jwt/TokenSigner.port';
+
+import { RefreshSessionLookupPort } from '@/application/authn/ports/RefreshSessionLookup.port';
+import { RefreshSessionRotationPort } from '@/application/authn/ports/RefreshSessionRotation.port';
+
+import { MembershipAdminRepositoryPort } from '@/application/authz/ports/MembershipAdminRepository.port';
+
+import { AuditLogRepositoryPort } from '@/application/audit/ports/AuditLogRepository.port';
+
+/* =========================
+ * AUDIT
+ * ========================= */
+import { AuditWriter } from '@/application/audit/services/AuditWriter';
+import { AUDIT_WRITER } from '@/application/audit/services/audit.token';
 
 /* =========================
  * SHARED
  * ========================= */
 import { RateLimitService } from '@/application/shared/RateLimit';
-import { IdGeneratorPort } from '@/application/auth/Login.usecase';
+import { IdGeneratorPort } from '@/application/authn/usecases/Login.usecase';
 import { IdempotencyService } from '@/application/shared/Idempotency';
 
 @Module({
   imports: [InfrastructureModule],
 
   providers: [
+    /**
+     * AuditWriter: utilisé seulement par les usecases déjà refactor (Login/Register).
+     * Il dépend du AuditLogRepositoryPort (impl fourni par InfrastructureModule).
+     */
+    {
+      provide: AUDIT_WRITER,
+      useFactory: (repo: AuditLogRepositoryPort) => new AuditWriter(repo),
+      inject: ['AuditLogRepositoryPort'],
+    },
+
     {
       provide: LoginUseCase,
       useFactory: (
@@ -54,8 +73,8 @@ import { IdempotencyService } from '@/application/shared/Idempotency';
         refreshTokenHasher: RefreshTokenHasherPort,
         refreshSessions: RefreshSessionRepositoryPort,
         rateLimit: RateLimitService,
-        audit: AuditLogRepositoryPort,
         ids: IdGeneratorPort,
+        auditWriter: AuditWriter,
       ) =>
         new LoginUseCase(
           users,
@@ -67,8 +86,8 @@ import { IdempotencyService } from '@/application/shared/Idempotency';
           refreshTokenHasher,
           refreshSessions,
           rateLimit,
-          audit,
           ids,
+          auditWriter,
         ),
       inject: [
         'UserRepositoryPort',
@@ -80,11 +99,15 @@ import { IdempotencyService } from '@/application/shared/Idempotency';
         'RefreshTokenHasherPort',
         'RefreshSessionRepositoryPort',
         'RateLimitService',
-        'AuditLogRepositoryPort',
         'IdGeneratorPort',
+        AUDIT_WRITER,
       ],
     },
 
+    /**
+     * RefreshTokenUseCase: on garde l'ancien wiring (audit repo direct)
+     * tant que tu n'as pas refactor ce usecase vers AuditWriter.
+     */
     {
       provide: RefreshTokenUseCase,
       useFactory: (
@@ -119,6 +142,9 @@ import { IdempotencyService } from '@/application/shared/Idempotency';
       ],
     },
 
+    /**
+     * LogoutUseCase: idem, audit repo direct (ancien état)
+     */
     {
       provide: LogoutUseCase,
       useFactory: (
@@ -151,15 +177,15 @@ import { IdempotencyService } from '@/application/shared/Idempotency';
         users: UserRepositoryPort,
         credentials: CredentialRepositoryPort,
         hasher: PasswordHasherPort,
-        audit: AuditLogRepositoryPort,
         idempotency: IdempotencyService,
-      ) => new RegisterUserUseCase(users, credentials, hasher, audit, idempotency),
+        auditWriter: AuditWriter,
+      ) => new RegisterUserUseCase(users, credentials, hasher, idempotency, auditWriter),
       inject: [
         'UserRepositoryPort',
         'CredentialRepositoryPort',
         'PasswordHasherPort',
-        'AuditLogRepositoryPort',
         'IdempotencyService',
+        AUDIT_WRITER,
       ],
     },
 
@@ -179,6 +205,7 @@ import { IdempotencyService } from '@/application/shared/Idempotency';
   ],
 
   exports: [
+    AUDIT_WRITER,
     LoginUseCase,
     RefreshTokenUseCase,
     LogoutUseCase,

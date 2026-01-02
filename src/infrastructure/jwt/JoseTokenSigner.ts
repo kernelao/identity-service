@@ -1,6 +1,6 @@
 import { SignJWT, importPKCS8 } from 'jose';
-import { TokenSignerPort } from '@/application/auth/ports/TokenSigner.port';
-import { JwtClaims } from '@/application/auth/JwtClaims';
+import { TokenSignerPort } from '@/application/authn/ports/jwt/TokenSigner.port';
+import { JwtClaims } from '@/application/authn/services/JwtClaims';
 
 export class JoseTokenSigner implements TokenSignerPort {
   constructor(private readonly privateKeyPem: string) {}
